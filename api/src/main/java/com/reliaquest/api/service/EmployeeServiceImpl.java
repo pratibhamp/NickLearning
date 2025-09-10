@@ -16,15 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
- * Central service for managing employee operations.
- *
- * This service acts as the main business logic layer, coordinating between
- * the web layer and external services. It handles data transformation,
- * validation, and error management.
- *
- * Note: We're using the mock employee API as our data source, but this
- * service is designed to be flexible enough to switch to a database
- * or other data sources in the future.
+ * This class does the main work for employee actions.
+ * It talks to the web layer and other services.
+ * It checks data and handles errors.
+ * It can be changed to use a database later.
  */
 @Slf4j
 @Service
@@ -34,10 +29,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     private final MockEmployeeApiClient mockEmployeeApiClient;
 
     /**
-     * Fetches all employees from the system.
-     *
-     * This is probably our most commonly used endpoint, so I've made sure
-     * to add some good logging here for monitoring purposes.
+     * Get all employees.
+     * Converts data to our format.
      */
     public List<Employee> getAllEmployees() {
         log.info("Starting to fetch all employees from the system");
@@ -63,12 +56,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     /**
-     * Searches for employees whose names contain the given search string.
-     *
-     * I implemented this with case-insensitive matching since that's what
-     * users typically expect. The search is done in-memory after fetching
-     * all employees - not the most efficient for large datasets, but works
-     * fine for our current scale.
+     * Search employees by name (case-insensitive).
+     * Checks for empty search.
      */
     public List<Employee> searchEmployeesByName(String searchString) {
         log.info("Searching for employees with name containing: '{}'", searchString);
@@ -106,10 +95,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     /**
-     * Retrieves a specific employee by their ID.
-     *
-     * This is a straightforward lookup, but I added some defensive programming
-     * to handle edge cases gracefully.
+     * Get one employee by ID.
+     * Checks for empty ID and handles not found.
      */
     public Employee getEmployeeById(String id) {
         log.info("Looking up employee with ID: {}", id);
@@ -140,11 +127,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     /**
-     * Calculates and returns the highest salary among all employees.
-     *
-     * I could have done this with a database query if we had one, but for now
-     * we're doing the calculation in-memory. Performance should be fine unless
-     * we have thousands of employees.
+     * Get the highest salary.
+     * Calculates in memory.
      */
     public Integer getHighestSalary() {
         log.info("Calculating highest salary across all employees");
@@ -168,11 +152,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     /**
-     * Gets the names of our top 10 highest paid employees.
-     *
-     * This is useful for reporting purposes. I'm sorting by salary in descending
-     * order and taking the first 10. If there are ties, the order might vary
-     * between calls, but that's probably acceptable for this use case.
+     * Get names of top 10 highest paid employees.
+     * Sorts by salary and picks first 10.
      */
     public List<String> getTopTenHighestEarningEmployeeNames() {
         log.info("Fetching names of top 10 highest earning employees");
@@ -200,10 +181,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     /**
-     * Creates a new employee in the system.
-     *
-     * I added some extra validation here beyond what the Bean Validation provides
-     * since employee creation is a critical operation.
+     * Add a new employee.
+     * Checks input and logs details.
      */
     public Employee createEmployee(CreateEmployeeInput input) {
         if (input == null) {
@@ -237,11 +216,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     /**
-     * Removes an employee from the system.
-     *
-     * This is a sensitive operation, so I'm being extra careful with logging
-     * and validation. We want to make sure we don't accidentally delete
-     * the wrong person!
+     * Delete an employee by ID.
+     * Checks for empty ID and makes sure employee exists.
      */
     public String deleteEmployeeById(String id) {
         if (!StringUtils.hasText(id)) {
@@ -286,10 +262,8 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     /**
-     * Converts a MockEmployee from the external API to our internal Employee format.
-     *
-     * This is a simple mapping operation, but I've isolated it into its own method
-     * to make testing easier and to keep the conversion logic in one place.
+     * Change a MockEmployee to our Employee format.
+     * Returns null if input is null.
      */
     private Employee convertToEmployee(MockEmployee mockEmployee) {
         if (mockEmployee == null) {

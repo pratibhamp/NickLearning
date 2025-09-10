@@ -20,14 +20,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * HTTP client for communicating with the mock employee API server.
- *
- * This client handles all the nitty-gritty details of making HTTP calls to
- * the external mock server. I've tried to make it robust by including proper
- * error handling, retry logic, and comprehensive logging.
- *
- * The mock server has its own data format, so this client also handles the
- * conversion between our internal models and what the external API expects.
+ * This class sends HTTP requests to the mock employee API server.
+ * It changes our data to the format the server needs.
+ * It also handles errors if something goes wrong.
  */
 @Slf4j
 @Component
@@ -42,10 +37,8 @@ public class MockEmployeeApiClient {
     private static final String EMPLOYEES_ENDPOINT = "/api/v1/employee";
 
     /**
-     * Fetches all employees from the mock server.
-     *
-     * This is our most common operation, so I've added some performance monitoring
-     * to help us track how the external API is performing.
+     * Get all employees from the mock server.
+     * Shows how long the request took.
      */
     public List<MockEmployee> getAllEmployees() {
         long startTime = System.currentTimeMillis();
@@ -84,13 +77,11 @@ public class MockEmployeeApiClient {
     }
 
     /**
-     * Looks up a specific employee by their ID.
-     *
-     * The mock server sometimes returns null for non-existent employees,
-     * sometimes throws errors. I'm handling both cases gracefully.
+     * Get an employee by their ID.
+     * Returns null if not found.
      */
     public MockEmployee getEmployeeById(String id) {
-        // Don't log the full ID for privacy reasons
+        // Hide most of the ID for privacy
         String maskedId = id.length() > 4 ? id.substring(0, 4) + "****" : "****";
         log.debug("Looking up employee {} from mock server", maskedId);
 
@@ -110,47 +101,35 @@ public class MockEmployeeApiClient {
                 return employee;
             }
 
-            // If we get a non-200 response, the employee probably doesn't exist
+            // If not found, return null
             log.debug("Employee {} not found (status: {})", maskedId, response.getStatusCode());
             return null;
 
         } catch (RestClientException ex) {
-            log.error(
-                    "Error communicating with mock server while looking up employee {}. "
-                            + "Network issue or server problem: {}",
-                    maskedId,
-                    ex.getMessage(),
-                    ex);
-            throw new ExternalApiException("Unable to lookup employee", ex);
+            log.error("Error talking to mock server for employee {}. Error: {}", maskedId, ex.getMessage(), ex);
+            throw new ExternalApiException("Could not get employee", ex);
         }
     }
 
     /**
-     * Creates a new employee in the mock server.
-     *
-     * The mock server expects a different format than our internal models,
-     * so I'm doing the conversion here. Also adding some validation to catch
-     * issues early.
+     * Add a new employee to the mock server.
+     * Changes our data to the server's format.
      */
     public MockEmployee createEmployee(CreateEmployeeInput input) {
-        log.info("Creating new employee '{}' in mock server", input.getName());
+        log.info("Adding new employee '{}' to mock server", input.getName());
 
         try {
             String url = baseUrl + EMPLOYEES_ENDPOINT;
 
-            // Convert our internal format to what the mock server expects
+            // Change our format to the server's format
             CreateMockEmployeeInput mockInput = new CreateMockEmployeeInput();
             mockInput.setName(input.getName());
             mockInput.setSalary(input.getSalary());
             mockInput.setAge(input.getAge());
             mockInput.setTitle(input.getTitle());
 
-            // Log the data we're sending (but not salary for privacy)
-            log.debug(
-                    "Sending employee creation request - Name: {}, Title: {}, Age: {}",
-                    input.getName(),
-                    input.getTitle(),
-                    input.getAge());
+            // Log what we are sending (not salary)
+            log.debug("Sending employee create request - Name: {}, Title: {}, Age: {}", input.getName(), input.getTitle(), input.getAge());
 
             HttpEntity<CreateMockEmployeeInput> request = new HttpEntity<>(mockInput);
 
@@ -182,11 +161,8 @@ public class MockEmployeeApiClient {
     }
 
     /**
-     * Deletes an employee from the mock server.
-     *
-     * The mock server has a quirky API - it requires the employee's name for deletion
-     * rather than just the ID. So I have to fetch the employee first to get the name.
-     * Not ideal from a performance standpoint, but that's what we have to work with.
+     * Delete an employee from the mock server.
+     * The server needs the employee's name, so we get the employee first.
      */
     public boolean deleteEmployee(String id) {
         String maskedId = id.length() > 4 ? id.substring(0, 4) + "****" : "****";

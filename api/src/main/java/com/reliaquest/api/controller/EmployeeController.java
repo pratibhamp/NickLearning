@@ -13,14 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for employee management operations.
- *
- * This controller implements the IEmployeeController interface to ensure we're
- * meeting the API contract requirements. I've tried to keep the controller
- * layer thin - most of the business logic lives in the service layer.
- *
- * All endpoints return proper HTTP status codes and include request/response
- * logging for monitoring and debugging purposes.
+ * This class handles requests for employee actions.
+ * It uses the service layer for most work.
+ * It makes sure we follow the API rules.
  */
 @Slf4j
 @RestController
@@ -31,10 +26,8 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     private final EmployeeServiceImpl employeeServiceImpl;
 
     /**
-     * Retrieves all employees in the system.
-     *
-     * This is likely to be our most hit endpoint, so I've made sure to include
-     * performance logging to help us monitor response times.
+     * Get all employees.
+     * Logs how long it takes.
      */
     @Override
     public ResponseEntity<List<Employee>> getAllEmployees() {
@@ -57,16 +50,14 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     }
 
     /**
-     * Searches for employees by name.
-     *
-     * I decided to log the search terms for analytics purposes, but I'm being
-     * careful not to log any sensitive information.
+     * Search employees by name.
+     * Logs the search term.
      */
     @Override
     public ResponseEntity<List<Employee>> getEmployeesByNameSearch(String searchString) {
         log.info("GET /api/v1/employee/search/{} - Employee search requested", searchString);
 
-        // Basic sanitization for logging - remove any potential injection attempts
+        // Clean up the search string for safe logging
         String sanitizedSearchString = searchString.replaceAll("[\r\n\t]", "");
 
         try {
@@ -90,10 +81,8 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     }
 
     /**
-     * Fetches a specific employee by their ID.
-     *
-     * This is a simple lookup operation, but employee IDs are sensitive
-     * information so I'm being careful about what gets logged.
+     * Get one employee by ID.
+     * Masks the ID in logs for privacy.
      */
     @Override
     public ResponseEntity<Employee> getEmployeeById(String id) {
@@ -115,10 +104,8 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     }
 
     /**
-     * Returns the highest salary in the system.
-     *
-     * This is useful for HR analytics and reporting. Pretty straightforward
-     * endpoint, but the calculation might be expensive with lots of employees.
+     * Get the highest salary.
+     * Useful for reports.
      */
     @Override
     public ResponseEntity<Integer> getHighestSalaryOfEmployees() {
@@ -138,10 +125,8 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     }
 
     /**
-     * Gets the names of our top 10 highest paid employees.
-     *
-     * This endpoint is probably used for executive reporting. I'm not logging
-     * the actual names for privacy reasons, just the count.
+     * Get names of the top 10 highest paid employees.
+     * Only logs the count, not the names.
      */
     @Override
     public ResponseEntity<List<String>> getTopTenHighestEarningEmployeeNames() {
@@ -166,11 +151,8 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     }
 
     /**
-     * Creates a new employee in the system.
-     *
-     * This is a critical operation that changes system state, so I'm logging
-     * key details for audit purposes. The @Valid annotation ensures our
-     * validation rules are enforced.
+     * Add a new employee.
+     * Uses @Valid to check input.
      */
     @Override
     public ResponseEntity<Employee> createEmployee(@Valid CreateEmployeeInput employeeInput) {
@@ -179,7 +161,7 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
                 employeeInput.getName(),
                 employeeInput.getEmail());
 
-        // Log some key details for auditing (but not salary for privacy)
+        // Log some details for auditing (not salary)
         log.debug(
                 "POST /api/v1/employee - New employee details: Name={}, Title={}, Age={}",
                 employeeInput.getName(),
@@ -208,10 +190,8 @@ public class EmployeeController implements IEmployeeController<Employee, CreateE
     }
 
     /**
-     * Deletes an employee from the system.
-     *
-     * This is a destructive operation, so I'm being extra careful with logging.
-     * We want a clear audit trail of who gets deleted and when.
+     * Delete an employee by ID.
+     * Masks the ID in logs for privacy.
      */
     @Override
     public ResponseEntity<String> deleteEmployeeById(String id) {

@@ -12,24 +12,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
- * Centralized exception handling for our Employee API.
- *
- * I've set this up to catch all the different types of errors that can happen
- * and return consistent, user-friendly error responses. The logging here helps
- * us debug issues without exposing internal details to API consumers.
- *
- * Each exception type gets its own handler method with appropriate HTTP status
- * codes and error messages.
+ * This class handles errors for the Employee API.
+ * It catches different problems and sends clear error messages.
+ * It also logs errors for debugging.
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
-     * Handles cases where a requested employee doesn't exist.
-     *
-     * This is pretty common - users might have bookmarked an employee page
-     * who has since been deleted, or they might be trying random IDs.
+     * Handles when an employee is not found.
+     * Sends a not found message.
      */
     @ExceptionHandler(EmployeeNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEmployeeNotFoundException(EmployeeNotFoundException ex) {
@@ -45,10 +38,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles business logic errors from our service layer.
-     *
-     * These are usually things like validation failures or business rule
-     * violations that we catch and handle gracefully.
+     * Handles service layer errors.
+     * Sends a general error message.
      */
     @ExceptionHandler(EmployeeServiceException.class)
     public ResponseEntity<ErrorResponse> handleEmployeeServiceException(EmployeeServiceException ex) {
@@ -64,11 +55,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles errors when communicating with external services.
-     *
-     * The mock employee server sometimes goes down or becomes unresponsive.
-     * When that happens, we want to return a 503 to indicate it's a temporary
-     * issue rather than a problem with our code.
+     * Handles errors from talking to other services.
+     * Sends a message that the service is down.
      */
     @ExceptionHandler(ExternalApiException.class)
     public ResponseEntity<ErrorResponse> handleExternalApiException(ExternalApiException ex) {
@@ -84,11 +72,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles validation errors from @Valid annotations.
-     *
-     * When users send invalid data (like negative salaries or missing required
-     * fields), this catches it and returns a helpful error message showing
-     * exactly what was wrong.
+     * Handles validation errors from @Valid.
+     * Sends details about what was wrong.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
