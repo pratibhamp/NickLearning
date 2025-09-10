@@ -125,6 +125,19 @@ public class MockEmployeeApiClient {
             log.debug("Employee {} not found (status: {})", maskedId, response.getStatusCode());
             return null;
 
+        } catch (HttpClientErrorException ex) {
+            if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                log.warn(
+                        "Rate limit exceeded when looking up employee {}. "
+                                + "Mock server is applying random rate limiting as designed.",
+                        maskedId);
+                throw new RateLimitException("Employee service rate limit exceeded - please retry after a moment");
+            }
+            
+            // For other HTTP errors like 404, we still return null (handled above)
+            log.debug("HTTP error {} when looking up employee {}: {}", ex.getStatusCode(), maskedId, ex.getMessage());
+            throw new ExternalApiException("HTTP error from employee service: " + ex.getStatusCode(), ex);
+            
         } catch (RestClientException ex) {
             log.error("Error talking to mock server for employee {}. Error: {}", maskedId, ex.getMessage(), ex);
             throw new ExternalApiException("Could not get employee", ex);
@@ -170,6 +183,22 @@ public class MockEmployeeApiClient {
                     response.getStatusCode());
             throw new ExternalApiException("Employee creation failed - server returned unexpected response");
 
+        } catch (HttpClientErrorException ex) {
+            if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                log.warn(
+                        "Rate limit exceeded when creating employee '{}'. "
+                                + "Mock server is applying random rate limiting as designed.",
+                        input.getName());
+                throw new RateLimitException("Employee service rate limit exceeded - please retry after a moment");
+            }
+            
+            log.error(
+                    "HTTP error {} when creating employee '{}': {}",
+                    ex.getStatusCode(),
+                    input.getName(),
+                    ex.getMessage());
+            throw new ExternalApiException("HTTP error from employee service: " + ex.getStatusCode(), ex);
+            
         } catch (RestClientException ex) {
             log.error(
                     "Failed to create employee '{}' in mock server. Network or server error: {}",
@@ -226,6 +255,22 @@ public class MockEmployeeApiClient {
 
             return success;
 
+        } catch (HttpClientErrorException ex) {
+            if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                log.warn(
+                        "Rate limit exceeded when deleting employee {}. "
+                                + "Mock server is applying random rate limiting as designed.",
+                        maskedId);
+                throw new RateLimitException("Employee service rate limit exceeded - please retry after a moment");
+            }
+            
+            log.error(
+                    "HTTP error {} when deleting employee {}: {}",
+                    ex.getStatusCode(),
+                    maskedId,
+                    ex.getMessage());
+            throw new ExternalApiException("HTTP error from employee service: " + ex.getStatusCode(), ex);
+            
         } catch (RestClientException ex) {
             log.error(
                     "Failed to delete employee {} from mock server. Network or server error: {}",
