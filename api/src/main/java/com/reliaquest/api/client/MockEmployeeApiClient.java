@@ -1,6 +1,7 @@
 package com.reliaquest.api.client;
 
 import com.reliaquest.api.exception.ExternalApiException;
+import com.reliaquest.api.exception.RateLimitException;
 import com.reliaquest.api.model.CreateEmployeeInput;
 import com.reliaquest.server.model.CreateMockEmployeeInput;
 import com.reliaquest.server.model.DeleteMockEmployeeInput;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -64,6 +66,24 @@ public class MockEmployeeApiClient {
                     response.getBody());
             throw new ExternalApiException("Mock server returned unexpected response format");
 
+        } catch (HttpClientErrorException ex) {
+            long duration = System.currentTimeMillis() - startTime;
+            
+            if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                log.warn(
+                        "Rate limit exceeded when retrieving employees after {}ms. "
+                                + "Mock server is applying random rate limiting as designed.",
+                        duration);
+                throw new RateLimitException("Employee service rate limit exceeded - please retry after a moment");
+            }
+            
+            log.error(
+                    "HTTP error {} when retrieving employees after {}ms: {}",
+                    ex.getStatusCode(),
+                    duration,
+                    ex.getMessage());
+            throw new ExternalApiException("HTTP error from employee service: " + ex.getStatusCode(), ex);
+            
         } catch (RestClientException ex) {
             long duration = System.currentTimeMillis() - startTime;
             log.error(

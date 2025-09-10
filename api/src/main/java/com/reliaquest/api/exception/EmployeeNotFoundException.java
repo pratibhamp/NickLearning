@@ -1,11 +1,8 @@
 package com.reliaquest.api.exception;
 
 /**
- * Thrown when we can't find the employee someone is looking for.
- *
- * This is pretty common - employees get deleted, or users might be trying
- * to access old bookmarks. It's not really an "error" in the traditional
- * sense, more like a normal business condition.
+ * This exception is used when an employee can't be found.
+ * This happens often if employees are deleted or someone tries to use an old link. It's not a serious error, just a normal situation in business.
  */
 public class EmployeeNotFoundException extends RuntimeException {
 

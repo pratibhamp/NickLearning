@@ -1,11 +1,10 @@
 package com.reliaquest.api.exception;
 
 /**
- * Thrown when something goes wrong in our business logic layer.
- *
- * This usually indicates a problem with our code or business rules,
- * rather than external dependencies. Things like validation failures,
- * data inconsistencies, or business rule violations.
+ * This exception is used when something goes wrong in our business logic.
+ * This usually means there is a problem with our code or business rules,
+ * not with outside systems. Examples include validation problems,
+ * data mistakes, or breaking business rules.
  */
 public class EmployeeServiceException extends RuntimeException {
 

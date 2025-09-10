@@ -13,15 +13,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Represents an employee in our system.
- *
- * This is our main employee data structure. The JSON property names are a bit
- * weird (employee_name instead of just name) because that's what the external
- * mock API expects. I've used @JsonProperty to map between our clean internal
- * names and the external format.
- *
- * The validation annotations help ensure we don't accept garbage data - things
- * like negative salaries or people who are supposedly 200 years old.
+ * This class stores information about an employee.
+ * This is the main employee data structure. The JSON property names are different (like employee_name instead of name) because the external API needs them that way. The @JsonProperty annotation matches our field names to the external format.
+ * The validation annotations make sure we only accept correct data, like positive salaries and ages between 16 and 75.
  */
 @Data
 @Builder

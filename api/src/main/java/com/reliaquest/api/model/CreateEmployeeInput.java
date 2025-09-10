@@ -12,16 +12,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Input data for creating a new employee.
- *
- * This is what clients send when they want to create a new employee. I've
- * kept it separate from the main Employee class because create operations
- * often have different validation rules than updates (and we don't have
- * an ID yet when creating).
- *
- * The age limits might seem arbitrary, but they're based on typical
- * employment law requirements - you need to be at least 16 to work in
- * most places, and 75 is a reasonable upper bound for active employment.
+ * This class holds the information needed to add a new employee.
+ * Clients use this when they want to add an employee. It is different from the main Employee class because creating and updating have different rules. There is no ID when creating.
+ * The age must be between 16 and 75 because most jobs require employees to be at least 16, and 75 is a common maximum age for working.
  */
 @Data
 @Builder

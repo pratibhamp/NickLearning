@@ -7,14 +7,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Configuration for our HTTP client (RestTemplate).
- *
- * I've configured reasonable timeouts here - 10 seconds to establish a connection
- * and 30 seconds to read the response. The mock server can be a bit slow sometimes,
- * so I didn't want to make the timeouts too aggressive.
- *
- * In a production system, I'd probably add retry logic and circuit breakers,
- * but this should be good enough for our current needs.
+ * This class sets up our HTTP client (RestTemplate).
+ * The timeouts are set to 10 seconds for connecting and 30 seconds for reading data.
+ * The mock server can be slow, so these timeouts should be enough.
+ * For real systems, we might add retries and circuit breakers, but this is fine for now.
  */
 @Configuration
 public class RestTemplateConfig {

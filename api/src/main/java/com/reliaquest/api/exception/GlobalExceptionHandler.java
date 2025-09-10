@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles service layer errors.
+     * Handles errors from our service code.
      * Sends a general error message.
      */
     @ExceptionHandler(EmployeeServiceException.class)
@@ -55,7 +55,29 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles errors from talking to other services.
+     * Handles rate limiting errors from external services (HTTP 429).
+     *
+     * The mock server randomly applies rate limiting as per its design.
+     * When this happens, we return a 429 status with a helpful message
+     * indicating the client should retry after some time.
+     */
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitException(RateLimitException ex) {
+        log.warn("Rate limit exceeded on external service: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .error("Rate limit exceeded")
+                .message("Too many requests to the employee service. Please wait a moment and try again.")
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", "60") // Suggest retry after 60 seconds
+                .body(errorResponse);
+    }
+
+    /**
+     * Handles errors when talking to other services.
      * Sends a message that the service is down.
      */
     @ExceptionHandler(ExternalApiException.class)
@@ -99,10 +121,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles type conversion errors in URL parameters.
-     *
-     * This happens when someone passes a string where we expect a number,
-     * or other type mismatches. Pretty common with URL parameters.
+     * Handles errors when a parameter is the wrong type.
+     * This happens if someone sends a string instead of a number, or similar mistakes.
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
@@ -120,10 +140,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Catch-all handler for any exceptions we didn't specifically handle.
-     *
-     * This is our safety net - we don't want to ever return a raw stack trace
-     * to API consumers. Better to log the details and return a generic error.
+     * Handles any other errors we didn't catch above.
+     * This stops us from sending raw error details to users.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
