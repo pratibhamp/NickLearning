@@ -1,13 +1,14 @@
 package com.reliaquest.server.config;
 
 import com.reliaquest.server.model.MockEmployee;
-import com.reliaquest.server.web.RandomRequestLimitInterceptor;
+import com.reliaquest.server.web.RateLimitingInterceptor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import net.datafaker.transformations.Field;
@@ -21,7 +22,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class ServerConfiguration implements WebMvcConfigurer {
+
+    private final RateLimitingInterceptor rateLimitingInterceptor;
 
     public static final String EMAIL_TEMPLATE = "%s@company.com";
 
@@ -54,6 +58,8 @@ public class ServerConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RandomRequestLimitInterceptor());
+        registry.addInterceptor(rateLimitingInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/actuator/**", "/health/**");
     }
 }

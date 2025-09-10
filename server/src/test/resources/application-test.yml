@@ -1,21 +1,19 @@
-logging.level.com.reliaquest: DEBUG
-spring.application.name: mock-employee-api
+logging.level.com.reliaquest: INFO
+spring.application.name: mock-employee-api-test
 server:
-  port: 8112
-  compression:
-    enabled: true
-mock.employees.max: 50
+  port: 0  # Random port for testing
+mock.employees.max: 10  # Smaller dataset for faster tests
 
-# Rate limiting configuration
+# Rate limiting configuration for testing
 app:
   rate-limit:
     enabled: true
     management:
-      enabled: true  # Enable rate limiting management endpoints
+      enabled: true
     global:
       capacity: 20
       refill-tokens: 20
-      refill-period: PT1M  # 1 minute
+      refill-period: PT1M
       enabled: true
       error-message: "Global rate limit exceeded. Please try again later."
     endpoints:
