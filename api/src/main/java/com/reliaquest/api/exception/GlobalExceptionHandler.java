@@ -64,6 +64,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles rate limiting errors from external services (HTTP 429).
+     *
+     * The mock server randomly applies rate limiting as per its design.
+     * When this happens, we return a 429 status with a helpful message
+     * indicating the client should retry after some time.
+     */
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitException(RateLimitException ex) {
+        log.warn("Rate limit exceeded on external service: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .error("Rate limit exceeded")
+                .message("Too many requests to the employee service. Please wait a moment and try again.")
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", "60") // Suggest retry after 60 seconds
+                .body(errorResponse);
+    }
+
+    /**
      * Handles errors when communicating with external services.
      *
      * The mock employee server sometimes goes down or becomes unresponsive.
